@@ -1,5 +1,6 @@
+from django.db import models
 from rest_framework import serializers
-from .models import Product, ProductAccess, Lesson, LessonProgress
+from .models import Product, ProductAccess, Lesson, LessonProgress, User
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -42,3 +43,43 @@ class LessonWithProgressSerializer(serializers.ModelSerializer):
                 "is_watched": False,
                 "last_watched": None,
             }
+
+
+# Final Serializer for product statistic
+class ProductStatisticsSerializer(serializers.ModelSerializer):
+    lessons_viewed = serializers.SerializerMethodField()
+    total_watch_time = serializers.SerializerMethodField()
+    student_count = serializers.SerializerMethodField()
+    acquisition_percentage = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = [
+            "id",
+            "title",
+            "lessons_viewed",
+            "total_watch_time",
+            "student_count",
+            "acquisition_percentage",
+        ]
+
+    def get_lessons_viewed(self, product):
+        return LessonProgress.objects.filter(lesson__products=product).count()
+
+    def get_total_watch_time(self, product):
+        return (
+            LessonProgress.objects.filter(lesson__products=product).aggregate(
+                total=models.Sum("watched_seconds")
+            )["total"]
+            or 0
+        )
+
+    def get_student_count(self, product):
+        return product.productaccess_set.filter(can_view=True).count()
+
+    def get_acquisition_percentage(self, product):
+        total_users = User.objects.count()
+        access_count = product.productaccess_set.count()
+        if total_users == 0:
+            return 0
+        return (access_count / total_users) * 100

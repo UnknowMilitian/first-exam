@@ -6,6 +6,7 @@ from .views import (
     # LessonRetrieveUpdateDestroyView,
     UserLessonListView,
     ProductLessonListView,
+    ProductStatisticsListView,
 )
 
 urlpatterns = [
@@ -24,5 +25,10 @@ urlpatterns = [
         "product/<int:product_id>/lessons/",
         ProductLessonListView.as_view(),
         name="product-lesson-list",
+    ),
+    path(
+        "product-statistics/",
+        ProductStatisticsListView.as_view(),
+        name="product-statistics",
     ),
 ]

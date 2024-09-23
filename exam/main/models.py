@@ -14,7 +14,9 @@ class Product(models.Model):
 
 
 class ProductAccess(models.Model):
-    user_access = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_access = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="product_accesses"
+    )
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     can_edit = models.BooleanField(_("Can edit"), default=False)
     can_view = models.BooleanField(_("Can view"), default=True)

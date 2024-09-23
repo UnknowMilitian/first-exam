@@ -12,6 +12,7 @@ from .serializers import (
     ProductAccessSerializer,
     LessonSerializer,
     LessonWithProgressSerializer,
+    ProductStatisticsSerializer,
 )
 
 
@@ -68,3 +69,8 @@ class ProductLessonListView(generics.ListAPIView):
 
         # Return lessons for the specific product
         return Lesson.objects.filter(products__id=product_id).distinct()
+
+
+class ProductStatisticsListView(generics.ListAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductStatisticsSerializer
