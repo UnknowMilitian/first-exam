@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product, ProductAccess, Lesson
+from .models import Product, ProductAccess, Lesson, LessonProgress
 
 
 # Register your models here.
@@ -15,4 +15,9 @@ class ProductAccessAdmin(admin.ModelAdmin):
 
 @admin.register(Lesson)
 class LessonAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(LessonProgress)
+class LessonProgressAdmin(admin.ModelAdmin):
     pass

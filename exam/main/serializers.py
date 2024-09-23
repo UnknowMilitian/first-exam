@@ -20,15 +20,25 @@ class LessonSerializer(serializers.ModelSerializer):
         fields = ["id", "products", "title", "url_to_video", "duration"]
 
 
-class LessonProgressSerializer(serializers.ModelSerializer):
+class LessonWithProgressSerializer(serializers.ModelSerializer):
+    progress = serializers.SerializerMethodField()
+
     class Meta:
-        model = LessonProgress
-        fields = [
-            "id",
-            "lesson",
-            "user",
-            "watched_seconds",
-            "is_watched",
-            "last_watched_at",
-        ]
-        read_only_fields = ["is_watched", "last_watched_at"]
+        model = Lesson
+        fields = ["id", "products", "title", "url_to_video", "duration", "progress"]
+
+    def get_progress(self, lesson):
+        user = self.context["request"].user
+        try:
+            progress = LessonProgress.objects.get(lesson=lesson, user=user)
+            return {
+                "watched_seconds": progress.watched_seconds,
+                "is_watched": progress.is_watched,
+                "last_watched": progress.last_watched,
+            }
+        except LessonProgress.DoesNotExist:
+            return {
+                "watched_seconds": 0,
+                "is_watched": False,
+                "last_watched": None,
+            }

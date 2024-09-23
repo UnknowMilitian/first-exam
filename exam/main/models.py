@@ -46,7 +46,7 @@ class LessonProgress(models.Model):
     last_watched = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        if self.watched_seconds >= 0.8 * self.lesson.duration_seconds:
+        if self.watched_seconds >= 0.8 * self.lesson.duration:
             self.is_watched = True
         super().save(*args, **kwargs)
 

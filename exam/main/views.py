@@ -11,7 +11,7 @@ from .serializers import (
     ProductSerializer,
     ProductAccessSerializer,
     LessonSerializer,
-    LessonProgressSerializer,
+    LessonWithProgressSerializer,
 )
 
 
@@ -27,13 +27,44 @@ class ProductAccessList(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAdminUser]
 
 
-class LessonListCreateView(generics.ListCreateAPIView):
-    queryset = Lesson.objects.all()
-    serializer_class = LessonSerializer
-    permission_classes = [permissions.IsAuthenticated]
+# class LessonListCreateView(generics.ListCreateAPIView):
+#     queryset = Lesson.objects.all()
+#     serializer_class = LessonSerializer
+#     permission_classes = [permissions.IsAuthenticated]
 
 
-class LessonRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Lesson.objects.all()
+# class LessonRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = Lesson.objects.all()
+#     serializer_class = LessonSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+
+
+class UserLessonListView(generics.ListAPIView):
     serializer_class = LessonSerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # Get all products the user has access to
+        products_with_access = ProductAccess.objects.filter(
+            user_access=self.request.user, can_view=True
+        ).values_list("product", flat=True)
+
+        # Return lessons related to these products
+        return Lesson.objects.filter(products__in=products_with_access).distinct()
+
+
+class ProductLessonListView(generics.ListAPIView):
+    serializer_class = LessonWithProgressSerializer
+
+    def get_queryset(self):
+        product_id = self.kwargs["product_id"]
+
+        # Check if the user has access to the product
+        access = ProductAccess.objects.filter(
+            user_access=self.request.user, product_id=product_id, can_view=True
+        ).exists()
+
+        if not access:
+            return Lesson.objects.none()
+
+        # Return lessons for the specific product
+        return Lesson.objects.filter(products__id=product_id).distinct()
