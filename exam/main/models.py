@@ -22,3 +22,33 @@ class ProductAccess(models.Model):
 
     def __str__(self):
         return f"User '{self.user_access}' has access to product '{self.product.title}'"
+
+
+class Lesson(models.Model):
+    products = models.ManyToManyField(Product, related_name="lessons")
+    title = models.CharField(_("Lesson title"), max_length=250)
+    url_to_video = models.URLField(_("Url to video"))
+    duration = models.IntegerField()
+
+    def __str__(self):
+        return self.title
+
+
+class LessonProgress(models.Model):
+    lesson = models.ForeignKey(
+        Lesson, on_delete=models.CASCADE, related_name="progress"
+    )
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="lesson_progress"
+    )
+    watched_seconds = models.IntegerField(default=0)
+    is_watched = models.BooleanField(default=False)
+    last_watched = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if self.watched_seconds >= 0.8 * self.lesson.duration_seconds:
+            self.is_watched = True
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user.username} progress for {self.lesson.title}"
