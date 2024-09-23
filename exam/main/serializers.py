@@ -12,13 +12,27 @@ class ProductSerializer(serializers.ModelSerializer):
 class ProductAccessSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductAccess
-        fields = ["id", "user-access", "product", "can_edit", "can_view", "granted_at"]
+        fields = [
+            "id",
+            "user_access",
+            "product",
+            "can_edit",
+            "can_view",
+            "granted_at",
+        ]  # Fixed user_access field name
 
 
 class LessonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lesson
-        fields = ["id", "products", "title", "url_to_video", "duration"]
+        fields = [
+            "id",
+            "products",
+            "title",
+            "url_to_video",
+            "thumbnail",
+            "duration",
+        ]  # Added thumbnail
 
 
 class LessonWithProgressSerializer(serializers.ModelSerializer):
@@ -26,7 +40,15 @@ class LessonWithProgressSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lesson
-        fields = ["id", "products", "title", "url_to_video", "duration", "progress"]
+        fields = [
+            "id",
+            "products",
+            "title",
+            "url_to_video",
+            "thumbnail",
+            "duration",
+            "progress",
+        ]  # Added thumbnail and duration
 
     def get_progress(self, lesson):
         user = self.context["request"].user
@@ -47,6 +69,7 @@ class LessonWithProgressSerializer(serializers.ModelSerializer):
 
 # Final Serializer for product statistic
 class ProductStatisticsSerializer(serializers.ModelSerializer):
+    lessons_total = serializers.SerializerMethodField()
     lessons_viewed = serializers.SerializerMethodField()
     total_watch_time = serializers.SerializerMethodField()
     student_count = serializers.SerializerMethodField()
@@ -57,11 +80,15 @@ class ProductStatisticsSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "title",
+            "lessons_total",
             "lessons_viewed",
             "total_watch_time",
             "student_count",
             "acquisition_percentage",
         ]
+
+    def get_lessons_total(self, product):
+        return product.lessons.count()
 
     def get_lessons_viewed(self, product):
         return LessonProgress.objects.filter(lesson__products=product).count()

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
+from moviepy.editor import *
 
 
 # Create your models here.
@@ -29,8 +30,11 @@ class ProductAccess(models.Model):
 class Lesson(models.Model):
     products = models.ManyToManyField(Product, related_name="lessons")
     title = models.CharField(_("Lesson title"), max_length=250)
-    url_to_video = models.URLField(_("Url to video"))
-    duration = models.IntegerField()
+    url_to_video = models.FileField(_("Lesson file video"), upload_to="lesson")
+    thumbnail = models.ImageField(
+        _("Thumbnail"), upload_to="thumbnails", blank=True, null=True
+    )
+    duration = models.IntegerField()  # Duration in seconds
 
     def __str__(self):
         return self.title
