@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 from moviepy.editor import *
+from datetime import timedelta
 
 
 # Create your models here.
@@ -34,7 +35,14 @@ class Lesson(models.Model):
     thumbnail = models.ImageField(
         _("Thumbnail"), upload_to="thumbnails", blank=True, null=True
     )
-    duration = models.IntegerField()  # Duration in seconds
+    duration = models.DurationField()  # Duration as timedelta
+
+    def save(self, *args, **kwargs):
+        # Example: Convert an integer duration (in seconds) to timedelta
+        if isinstance(self.duration, int):
+            self.duration = timedelta(seconds=self.duration)
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -52,8 +60,13 @@ class LessonProgress(models.Model):
     last_watched = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        if self.watched_seconds >= 0.8 * self.lesson.duration:
+        # Convert lesson.duration (timedelta) to total seconds for comparison
+        lesson_duration_seconds = self.lesson.duration.total_seconds()
+
+        # If watched seconds is more than or equal to 80% of the lesson duration
+        if self.watched_seconds >= 0.8 * lesson_duration_seconds:
             self.is_watched = True
+
         super().save(*args, **kwargs)
 
     def __str__(self):
